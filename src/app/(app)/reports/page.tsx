@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Ban, Coins, Download, Package, Printer, Receipt, Sparkles, Table2, TrendingUp, Truck, Wallet } from "lucide-react";
+import { Ban, Coins, Download, Filter, Package, Printer, Receipt, Sparkles, Table2, TrendingUp, Truck, Wallet, X } from "lucide-react";
+import { CategoryProfit, GenreProfit, Insights, ProductProfitability, UnsoldStock, type CategoryRow, type GenreRow, type ProductRow, type UnsoldRow } from "@/components/ProfitAnalysis";
 import { SalesChart, bucketLabel } from "@/components/SalesChart";
 import { Button, Card, Empty, ErrorBox, Input, PageHeader, Select, Spinner, Stat, cx } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
@@ -10,7 +11,7 @@ import { STATUS_LABEL, type OrderStatus } from "@/lib/constants";
 import { todayYmd } from "@/lib/dates";
 import { PRESETS, presetRange, type Preset } from "@/lib/ranges";
 import { fmtDate, money, num } from "@/lib/format";
-import type { Order } from "@/lib/types";
+import type { Genre, Order } from "@/lib/types";
 
 type Report = {
   from: string;
@@ -25,8 +26,11 @@ type Report = {
   timeline: { bucket: string; sales: number; profit: number; orders: number; expenses: number; netProfit: number }[];
   expensesByCategory: { _id: string; name: string; total: number; count: number }[];
   statusCounts: Record<string, number>;
-  byGenre: { _id: string; name: string; qty: number; net: number; cost: number; profit: number }[];
-  byProduct: { _id: string; name: string; code: string; qty: number; net: number; cost: number; profit: number }[];
+  scoped: boolean;
+  byGenre: GenreRow[];
+  byCategory: CategoryRow[];
+  byProduct: ProductRow[];
+  unsold: UnsoldRow[];
   byPayment: { method: string; orders: number; billed: number; received: number }[];
   byCity: { city: string; orders: number; net: number }[];
   bySource: { source: string; orders: number; net: number }[];
@@ -38,8 +42,18 @@ export default function ReportsPage() {
   const [delivered, setDelivered] = useState(false);
   const [showTable, setShowTable] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [genre, setGenre] = useState("");
+  const [category, setCategory] = useState("");
+  const { data: genres } = useApi<Genre[]>("/api/categories");
+  const g = genres?.find((x) => x._id === genre);
+  const scopeName = g ? `${g.name}${category ? ` › ${g.categories.find((c) => c._id === category)?.name ?? ""}` : ""}` : "";
+  const focus = (gid: string, cid: string | null = null) => {
+    setGenre(gid);
+    setCategory(cid ?? "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-  const params = new URLSearchParams({ from: range[0], to: range[1], delivered: delivered ? "1" : "" });
+  const params = new URLSearchParams({ from: range[0], to: range[1], delivered: delivered ? "1" : "", genre, category });
   const { data: r, error, isLoading } = useApi<Report>(`/api/reports?${params}`, { keepPreviousData: true });
 
   const choose = (p: Preset) => {
@@ -87,7 +101,7 @@ export default function ReportsPage() {
     <>
       <PageHeader
         eyebrow="Overview" title="Sales report"
-        subtitle={label ? `${label}${delivered ? " · delivered orders only" : " · all orders except cancelled"}` : " "}
+        subtitle={label ? `${label}${scopeName ? ` · ${scopeName} only` : ""}${delivered ? " · delivered orders only" : " · all orders except cancelled"}` : " "}
         actions={
           <div className="no-print flex gap-2">
             <Button variant="secondary" onClick={() => window.print()} className="hidden sm:inline-flex"><Printer className="size-4" /> Print</Button>
@@ -141,6 +155,17 @@ export default function ReportsPage() {
                 {Array.from({ length: 6 }, (_, i) => thisYear - i).map((y) => <option key={y}>{y}</option>)}
               </Select>
             </label>
+            <div className="flex w-full items-center gap-2 sm:w-auto">
+              <Filter className="size-4 shrink-0 text-gold-500" />
+              <Select value={genre} onChange={(e) => focus(e.target.value)} aria-label="Genre" className="min-w-0 sm:w-40">
+                <option value="">All genres</option>
+                {genres?.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+              </Select>
+              <Select value={category} onChange={(e) => focus(genre, e.target.value || null)} disabled={!g?.categories.length} aria-label="Category" className="min-w-0 sm:w-40">
+                <option value="">All categories</option>
+                {g?.categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+              </Select>
+            </div>
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={delivered} onChange={(e) => setDelivered(e.target.checked)} className="size-4 accent-gold-600" />
               Delivered orders only
@@ -153,6 +178,26 @@ export default function ReportsPage() {
       {!r && isLoading && <Spinner />}
       {r && s && (
         <div className={cx("space-y-6 transition-opacity", isLoading && "opacity-60")}>
+          {r.scoped && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-gold-200 bg-gold-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-gold-700">
+                Showing only <b>{scopeName}</b>. Profit here is sales − buying cost for these items; shop-wide expenses aren&apos;t split by genre.
+              </p>
+              <button onClick={() => focus("")} className="inline-flex h-8 shrink-0 items-center gap-1.5 self-start rounded-full border border-gold-300 bg-white px-3 text-xs font-medium text-gold-700 hover:bg-gold-50 sm:self-auto">
+                <X className="size-3.5" /> Show everything
+              </button>
+            </div>
+          )}
+
+          {r.scoped ? (
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Stat icon={Sparkles} label="Profit" value={money(s.profit)} sub={`${s.margin}% margin`} emphasis />
+              <Stat icon={Coins} label="Sales" value={money(s.net)} sub="after discount" />
+              <Stat icon={Package} label="Buying cost" value={money(s.cost)} sub="of the items sold" />
+              <Stat icon={Receipt} label="Pieces sold" value={num(s.itemsSold)} sub={`in ${num(s.orders)} orders`} />
+            </div>
+          ) : (
+          <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat
               icon={Sparkles}
@@ -191,6 +236,10 @@ export default function ReportsPage() {
             <Stat icon={Truck} label="Delivery charges" value={money(s.deliveryCollected)} sub={`collected · ${money(s.deliveryNotCollected)} paid by shop`} />
             <Stat icon={Ban} label="Cancelled" value={num(s.cancelledOrders)} sub={s.cancelledOrders ? `${money(s.cancelledValue)} not counted` : "orders"} />
           </div>
+          </>
+          )}
+
+          <Insights products={r.byProduct} genres={r.byGenre} categories={r.byCategory} scope={category ? "category" : genre ? "genre" : "all"} />
 
           <Card
             title={`Sales & profit by ${r.granularity}`}
@@ -222,30 +271,29 @@ export default function ReportsPage() {
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card title="By genre">
-              <ShareTable
-                rows={r.byGenre.map((g) => ({ key: g._id, label: g.name, qty: g.qty, net: g.net, profit: g.profit }))}
-                total={s.net}
-              />
-            </Card>
-            <Card title="Top products">
-              <ShareTable
-                rows={r.byProduct.slice(0, 10).map((p) => ({ key: p._id, label: p.name, sub: p.code, qty: p.qty, net: p.net, profit: p.profit }))}
-                total={s.net}
-              />
-            </Card>
-          </div>
+          {!category && (
+            <div className={cx("grid grid-cols-1 gap-6", !genre && "lg:grid-cols-2")}>
+              {!genre && <GenreProfit rows={r.byGenre} onPick={(id) => focus(id)} />}
+              <CategoryProfit rows={r.byCategory} showGenre={!genre} onPick={(gid, cid) => focus(gid, cid)} />
+            </div>
+          )}
 
+          <ProductProfitability rows={r.byProduct} />
+
+          {r.scoped ? (
+            <UnsoldStock rows={r.unsold} />
+          ) : (
+          <>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <UnsoldStock rows={r.unsold} />
             <Card title="Expenses by category" action={<Link href="/expenses" className="text-xs font-medium uppercase tracking-wider text-gold-700 hover:text-gold-600">Manage →</Link>}>
               <SimpleTable head={["Category", "Entries", "Amount"]} rows={r.expensesByCategory.map((c) => [c.name, num(c.count), money(c.total)])} />
             </Card>
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card title="By payment type">
               <SimpleTable head={["Type", "Orders", "Billed", "Received"]} rows={r.byPayment.map((p) => [p.method, num(p.orders), money(p.billed), money(p.received)])} />
             </Card>
-          </div>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card title="Top cities">
               <SimpleTable head={["City", "Orders", "Sales"]} rows={r.byCity.map((c) => [c.city, num(c.orders), money(c.net)])} />
             </Card>
@@ -264,52 +312,15 @@ export default function ReportsPage() {
               ))}
             </div>
           </Card>
+          </>
+          )}
           <p className="pb-4 text-xs text-stone-400">
             Sales use the price entered on each sale (after its discount). Cost uses the buying price at the time of the sale. Delivery charges are never part of profit. Net profit also subtracts the expenses dated in this period.
-            Cancelled sales are excluded. Discount is spread across a sale&apos;s items by value for the genre and product breakdowns.
+            Cancelled sales are excluded. Discount is spread across a sale&apos;s items by value for the genre, category and product breakdowns. Margin = profit ÷ sales.
           </p>
         </div>
       )}
     </>
-  );
-}
-
-function ShareTable({ rows, total }: { rows: { key: string; label: string; sub?: string; qty: number; net: number; profit: number }[]; total: number }) {
-  if (!rows.length) return <Empty title="No data" />;
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[420px] text-sm">
-        <thead className="border-b border-stone-100 text-left text-xs uppercase tracking-wide text-stone-500">
-          <tr>
-            <th className="px-5 py-2.5 font-medium">Name</th>
-            <th className="px-3 py-2.5 text-right font-medium">Pcs</th>
-            <th className="px-3 py-2.5 text-right font-medium">Sales</th>
-            <th className="px-5 py-2.5 text-right font-medium">Profit</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-stone-100">
-          {rows.map((r) => {
-            const pct = total > 0 ? (r.net / total) * 100 : 0;
-            return (
-              <tr key={r.key}>
-                <td className="px-5 py-2.5">
-                  <p className="font-medium">{r.label} {r.sub && <span className="text-xs font-normal text-stone-400">{r.sub}</span>}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1.5 w-full max-w-40 rounded-full bg-stone-100">
-                      <div className="h-1.5 rounded-full bg-series-1" style={{ width: `${Math.max(pct, 1)}%` }} />
-                    </div>
-                    <span className="text-xs tabular-nums text-stone-500">{pct.toFixed(0)}%</span>
-                  </div>
-                </td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{num(r.qty)}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{money(r.net)}</td>
-                <td className={cx("px-5 py-2.5 text-right font-medium tabular-nums", r.profit < 0 && "text-red-600")}>{money(r.profit)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
   );
 }
 

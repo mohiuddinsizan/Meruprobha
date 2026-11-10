@@ -10,5 +10,7 @@ export const GET = route(async (req) => {
     from: isYmd(from) ? from : undefined,
     to: isYmd(to) ? to : undefined,
     deliveredOnly: sp.get("delivered") === "1",
+    genre: sp.get("genre") || undefined,
+    category: sp.get("category") || undefined,
   });
 });
