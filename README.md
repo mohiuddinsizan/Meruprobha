@@ -30,5 +30,6 @@ npm run build && npm start   # production
 - **Cost**: each sale line stores the product's buying price at the moment of the sale, so later price edits never change past profit.
 - **Profit** = (products total − discount) − buying cost. Delivery charges are never included; they are reported separately (collected from customer vs. paid by shop).
 - **Expenses** (food, transport, ads… categories are editable) are subtracted from profit by their date: **Net profit = Gross profit − Expenses**.
+- **Partners**: each partner has a share %. Shares together can't exceed 100%. The report splits the period's net profit by each partner's *current* share; any unassigned % stays with the shop. Share changes are logged on the partner.
 - **Reports** exclude cancelled sales and use Bangladesh time (UTC+6) for day/month/year boundaries.
 - **Products** with sales can't be hard-deleted; they're archived so history stays intact. Every manual edit is logged with what changed.

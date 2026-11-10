@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Ban, Coins, Download, Filter, Package, Printer, Receipt, Sparkles, Table2, TrendingUp, Truck, Wallet, X } from "lucide-react";
 import { CategoryProfit, GenreProfit, Insights, ProductProfitability, UnsoldStock, type CategoryRow, type GenreRow, type ProductRow, type UnsoldRow } from "@/components/ProfitAnalysis";
+import { PartnerShares } from "@/components/PartnerShares";
 import { SalesChart, bucketLabel } from "@/components/SalesChart";
 import { Button, Card, Empty, ErrorBox, Input, PageHeader, Select, Spinner, Stat, cx } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
@@ -11,7 +12,7 @@ import { STATUS_LABEL, type OrderStatus } from "@/lib/constants";
 import { todayYmd } from "@/lib/dates";
 import { PRESETS, presetRange, type Preset } from "@/lib/ranges";
 import { fmtDate, money, num } from "@/lib/format";
-import type { Genre, Order } from "@/lib/types";
+import type { Genre, Order, Partner } from "@/lib/types";
 
 type Report = {
   from: string;
@@ -45,6 +46,7 @@ export default function ReportsPage() {
   const [genre, setGenre] = useState("");
   const [category, setCategory] = useState("");
   const { data: genres } = useApi<Genre[]>("/api/categories");
+  const { data: partners } = useApi<Partner[]>("/api/partners");
   const g = genres?.find((x) => x._id === genre);
   const scopeName = g ? `${g.name}${category ? ` › ${g.categories.find((c) => c._id === category)?.name ?? ""}` : ""}` : "";
   const focus = (gid: string, cid: string | null = null) => {
@@ -236,6 +238,8 @@ export default function ReportsPage() {
             <Stat icon={Truck} label="Delivery charges" value={money(s.deliveryCollected)} sub={`collected · ${money(s.deliveryNotCollected)} paid by shop`} />
             <Stat icon={Ban} label="Cancelled" value={num(s.cancelledOrders)} sub={s.cancelledOrders ? `${money(s.cancelledValue)} not counted` : "orders"} />
           </div>
+
+          <PartnerShares netProfit={s.netProfit} partners={partners} />
           </>
           )}
 

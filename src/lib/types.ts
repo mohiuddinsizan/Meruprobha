@@ -65,3 +65,13 @@ export type Order = {
 };
 
 export type Settings = { shopName: string; deliveryInsideDhaka: number; deliveryOutsideDhaka: number; lowStockThreshold: number };
+
+export type Partner = {
+  _id: string;
+  name: string;
+  sharePct: number;
+  phone: string;
+  note: string;
+  shareHistory: { at: string; from: number; to: number }[];
+  createdAt: string;
+};

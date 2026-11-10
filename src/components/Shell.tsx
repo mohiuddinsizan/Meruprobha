@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, Boxes, Gem, LayoutDashboard, LogOut, Menu, Plus, ShoppingBag, Tags, UserCog, Wallet, X } from "lucide-react";
+import { BarChart3, Boxes, Gem, LayoutDashboard, LogOut, Menu, Plus, ShoppingBag, Tags, UserCog, Users, Wallet, X } from "lucide-react";
 import { cx } from "./ui";
 import { api, useApi } from "@/lib/client";
 
@@ -20,6 +20,7 @@ const GROUPS = [
     items: [
       { href: "/sales", label: "Sales", icon: ShoppingBag },
       { href: "/expenses", label: "Expenses", icon: Wallet },
+      { href: "/partners", label: "Partners", icon: Users },
       { href: "/inventory", label: "Inventory", icon: Boxes },
       { href: "/categories", label: "Genres & Categories", icon: Tags },
     ],

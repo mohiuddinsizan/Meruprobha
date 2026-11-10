@@ -237,3 +237,26 @@ const expenseSchema = new Schema<any>(
 );
 expenseSchema.index({ date: -1 });
 export const Expense = model<ExpenseDoc>("Expense", expenseSchema);
+
+/* ---------- Partners ---------- */
+export interface PartnerDoc {
+  _id: Id;
+  name: string;
+  sharePct: number;
+  phone: string;
+  note: string;
+  shareHistory: { at: Date; from: number; to: number }[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+const partnerSchema = new Schema<any>(
+  {
+    name: { type: String, required: true, trim: true },
+    sharePct: { type: Number, required: true, min: 0, max: 100 },
+    phone: { type: String, default: "" },
+    note: { type: String, default: "" },
+    shareHistory: [{ _id: false, at: { type: Date, default: Date.now }, from: Number, to: Number }],
+  },
+  { timestamps: true }
+);
+export const Partner = model<PartnerDoc>("Partner", partnerSchema);
