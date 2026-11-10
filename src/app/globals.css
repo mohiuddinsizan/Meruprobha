@@ -1,26 +1,66 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-cormorant);
+
+  --color-ivory: #f8f5ef;
+  --color-line: #ebe4d8;
+  --color-ink: #1a1613;
+  --color-espresso: #13100d;
+  --color-muted: #7a7068;
+
+  --color-gold-50: #fbf7ef;
+  --color-gold-100: #f4e9d2;
+  --color-gold-200: #e7d3a8;
+  --color-gold-300: #d8b97a;
+  --color-gold-400: #c7a057;
+  --color-gold-500: #b08640;
+  --color-gold-600: #946f31;
+  --color-gold-700: #755726;
+
+  /* chart series (validated: CVD-safe, >=3:1 on white) */
+  --color-series-1: #1f4fae;
+  --color-series-2: #b07a1e;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-gold-200);
+}
+
+/* Cormorant defaults to old-style figures; use lining figures so numbers read clearly. */
+.font-display {
+  font-variant-numeric: lining-nums;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #f1dcaa 0%, #c9a35b 45%, #f4e3b8 70%, #b08640 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gold-fill {
+  background: linear-gradient(135deg, #e9cf92 0%, #b98f45 50%, #8f6a2c 100%);
+}
+
+.hairline-gold {
+  background: linear-gradient(90deg, transparent, var(--color-gold-300), transparent);
+}
+
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
+
+@media print {
+  aside, header, nav, .no-print { display: none !important; }
+  main { padding: 0 !important; }
+  body { background: white; }
 }

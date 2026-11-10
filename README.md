@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meroprobha Admin
 
-## Getting Started
+Business tracking dashboard for the Meroprobha jewellery shop: inventory, sales, delivery status and profit reports.
 
-First, run the development server:
+Built with Next.js 15 (App Router), TypeScript, Tailwind CSS, MongoDB (Mongoose) and Recharts.
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # development, http://localhost:3000
+npm run build && npm start   # production
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuration (`.env.local`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Purpose |
+|---|---|
+| `MONGODB_URI` | MongoDB Atlas connection string (database `meroprobha`) |
+| `AUTH_SECRET` | Long random string used to sign login sessions |
+| `MASTER_PASSWORD` | Always works for login, even after the admin password is changed |
+| `INITIAL_ADMIN_PASSWORD` | Admin password used on first run only; change it from Profile afterwards |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.env.local` is git-ignored. Never commit it.
 
-## Learn More
+## How the numbers work
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Stock**: saving a sale deducts the items from inventory. Cancelling returns them; re-opening deducts again. Editing a sale adjusts by the difference. All stock changes run in a MongoDB transaction, and a sale can never take stock below zero.
+- **Selling price**: each sale stores the price actually charged. The product's selling price is only a pre-fill.
+- **Cost**: each sale line stores the product's buying price at the moment of the sale, so later price edits never change past profit.
+- **Profit** = (products total − discount) − buying cost. Delivery charges are never included; they are reported separately (collected from customer vs. paid by shop).
+- **Expenses** (food, transport, ads… categories are editable) are subtracted from profit by their date: **Net profit = Gross profit − Expenses**.
+- **Reports** exclude cancelled sales and use Bangladesh time (UTC+6) for day/month/year boundaries.
+- **Products** with sales can't be hard-deleted; they're archived so history stays intact. Every manual edit is logged with what changed.
