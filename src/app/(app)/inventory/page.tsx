@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { ChevronRight, LayoutGrid, List, Plus, Search } from "lucide-react";
 import { ProductCard, StockBadge, Thumb } from "@/components/ProductBits";
-import { Badge, Button, Card, Empty, ErrorBox, Input, PageHeader, Segmented, Select, Spinner } from "@/components/ui";
+import { FilterButton } from "@/components/PeriodPicker";
+import { Badge, Button, Card, Empty, ErrorBox, Field, Input, Modal, PageHeader, Segmented, Select, Spinner } from "@/components/ui";
 import { useApi } from "@/lib/client";
 import { fmtDate, money, num } from "@/lib/format";
 import type { Genre, Product } from "@/lib/types";
@@ -26,6 +27,7 @@ function Inventory() {
   const [stock, setStock] = useState(sp.get("stock") ?? "");
   const [archived, setArchived] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -57,7 +59,67 @@ function Inventory() {
         actions={<Button href="/inventory/new"><Plus className="size-4" /> Add product</Button>}
       />
 
-      <Card className="mb-5">
+      <div className="mb-5 space-y-2.5 sm:hidden">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gold-500" />
+          <input
+            type="search"
+            placeholder="Search by name or code…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="h-12 w-full rounded-2xl border border-line bg-white pl-11 pr-4 text-sm shadow-[0_1px_2px_rgba(26,22,19,0.04)] placeholder:text-stone-400 focus:border-gold-400 focus:outline-none"
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <FilterButton count={(genre ? 1 : 0) + (category ? 1 : 0) + (stock ? 1 : 0) + (archived ? 1 : 0)} onClick={() => setFiltersOpen(true)} />
+          <Segmented
+            value={view}
+            onChange={changeView}
+            options={[
+              { value: "grid", label: <LayoutGrid className="size-4" />, title: "Grid view" },
+              { value: "list", label: <List className="size-4" />, title: "List view" },
+            ]}
+          />
+        </div>
+      </div>
+
+      <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+        <div className="space-y-4">
+          <Field label="Genre">
+            <Select value={genre} onChange={(e) => { setGenre(e.target.value); setCategory(""); }}>
+              <option value="">All genres</option>
+              {genres?.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+            </Select>
+          </Field>
+          <Field label="Category">
+            <Select value={category} onChange={(e) => setCategory(e.target.value)} disabled={!g?.categories.length}>
+              <option value="">All categories</option>
+              {g?.categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </Select>
+          </Field>
+          <div>
+            <span className="mb-1.5 block text-[13px] font-medium text-stone-700">Stock</span>
+            <div className="grid grid-cols-2 gap-2">
+              {[["", "Any stock"], ["in", "In stock"], ["low", "Low stock"], ["out", "Out of stock"]].map(([v, l]) => (
+                <button key={v} type="button" onClick={() => setStock(v)} className={`h-10 rounded-xl border text-sm ${stock === v ? "border-ink bg-ink font-medium text-gold-50" : "border-line bg-white text-stone-700"}`}>{l}</button>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 text-sm">
+            <span>
+              <span className="block font-medium">Show archived</span>
+              <span className="block text-xs text-muted">Products you&apos;ve stopped selling</span>
+            </span>
+            <input type="checkbox" checked={archived} onChange={(e) => setArchived(e.target.checked)} className="size-5 shrink-0 accent-gold-600" />
+          </label>
+          <div className="flex gap-2 pt-1">
+            <Button variant="secondary" className="flex-1" onClick={() => { setGenre(""); setCategory(""); setStock(""); setArchived(false); }}>Reset</Button>
+            <Button className="flex-1" onClick={() => setFiltersOpen(false)}>Done</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Card className="mb-5 hidden sm:block">
         <div className="grid gap-2.5 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-[1fr_170px_170px_150px_auto_auto] lg:items-center">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-gold-500" />

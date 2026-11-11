@@ -110,7 +110,7 @@ export function Badge({ children, tone = "stone", className }: { children: React
     red: "bg-red-50 text-red-700 ring-red-200",
     gold: "bg-gold-50 text-gold-700 ring-gold-200",
   };
-  return <span className={cx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ring-inset", tones[tone], className)}>{children}</span>;
+  return <span className={cx("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 font-sans text-[11px] font-medium leading-normal tracking-normal ring-1 ring-inset", tones[tone], className)}>{children}</span>;
 }
 
 const STATUS_TONE: Record<OrderStatus, "amber" | "blue" | "green" | "red"> = {

@@ -91,7 +91,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="min-w-0 space-y-6">
           <Card>
-            <div className="aspect-square overflow-hidden rounded-t-xl bg-stone-100">
+            <div className={cx("overflow-hidden rounded-t-xl bg-stone-100", p.images.length ? "aspect-square" : "aspect-[5/2] sm:aspect-square")}>
               {p.images.length ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={imgUrl(p.images[Math.min(img, p.images.length - 1)])} alt={p.name} className="size-full object-cover" />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, PieChart, Plus, Trash2, Users } from "lucide-react";
 import { PartnerShares } from "@/components/PartnerShares";
+import { PeriodPicker } from "@/components/PeriodPicker";
 import { Button, Card, Empty, ErrorBox, Field, Input, Modal, PageHeader, Spinner, Stat, Textarea, cx, useConfirm, useToast } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
 import { fmtDate, num } from "@/lib/format";
@@ -23,7 +24,9 @@ export default function PartnersPage() {
   const [preset, setPreset] = useState<Preset>("month");
 
   const { data: partners, error, mutate } = useApi<Partner[]>("/api/partners");
-  const [from, to] = presetRange(preset);
+  const [range, setRange] = useState<[string, string]>(presetRange("month"));
+  const [from, to] = range;
+  const choose = (p: Preset) => { setPreset(p); setRange(presetRange(p)); };
   const { data: report } = useApi<Report>(`/api/reports?${new URLSearchParams({ from, to })}`, { keepPreviousData: true });
 
   const assigned = Math.round((partners ?? []).reduce((s, p) => s + p.sharePct, 0) * 100) / 100;
@@ -80,7 +83,7 @@ export default function PartnersPage() {
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             <Stat icon={PieChart} label="Shares assigned" value={`${+assigned.toFixed(2)}%`} sub={assigned === 100 ? "fully distributed" : `${+(100 - assigned).toFixed(2)}% stays with the shop`} emphasis />
             <Stat icon={Users} label="Partners" value={num(partners.length)} />
-            <div className="col-span-2 lg:col-span-1"><Stat label="Largest share" value={partners[0] ? `${+partners[0].sharePct.toFixed(2)}%` : "—"} sub={partners[0]?.name ?? "No partners yet"} /></div>
+            <div className="hidden sm:col-span-2 sm:block lg:col-span-1"><Stat label="Largest share" value={partners[0] ? `${+partners[0].sharePct.toFixed(2)}%` : "—"} sub={partners[0]?.name ?? "No partners yet"} /></div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -117,11 +120,12 @@ export default function PartnersPage() {
             </Card>
 
             <div className="min-w-0 space-y-3 lg:col-span-2">
-              <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+              <PeriodPicker preset={preset} range={range} onPreset={choose} onRange={(a, b) => { setPreset("custom"); setRange([a, b]); }} className="w-full sm:hidden" />
+              <div className="hidden flex-wrap gap-1.5 sm:flex">
                 {PRESETS.filter((x) => SHOWN.includes(x.k)).map((x) => (
                   <button
                     key={x.k}
-                    onClick={() => setPreset(x.k)}
+                    onClick={() => choose(x.k)}
                     className={cx("h-8 shrink-0 rounded-full border px-3.5 text-xs font-medium transition-colors", preset === x.k ? "border-ink bg-ink text-gold-50" : "border-line bg-white text-stone-600 hover:border-gold-300")}
                   >
                     {x.label}

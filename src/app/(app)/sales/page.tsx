@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MapPin, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { PeriodPicker } from "@/components/PeriodPicker";
 import { Button, Card, Empty, ErrorBox, Input, PageHeader, PaymentBadge, Spinner, StatusBadge, Tabs, cx } from "@/components/ui";
 import { useApi } from "@/lib/client";
+import { presetRange, type Preset } from "@/lib/ranges";
 import { ORDER_STATUSES, STATUS_LABEL } from "@/lib/constants";
 import { fmtDate, money } from "@/lib/format";
 import type { Order } from "@/lib/types";
@@ -20,6 +22,7 @@ export default function SalesPage() {
   const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [preset, setPreset] = useState<Preset>("all");
   const [due, setDue] = useState(false);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(false);
@@ -59,7 +62,14 @@ export default function SalesPage() {
             </button>
           </div>
           <div className={cx("flex-col gap-2.5 sm:flex-row sm:items-center lg:flex", filters ? "flex" : "hidden")}>
-            <div className="flex items-center gap-2">
+            <PeriodPicker
+              preset={preset}
+              range={[from, to]}
+              onPreset={(p) => { const [a, b] = presetRange(p); setPreset(p); setFrom(a); setTo(b); setPage(1); }}
+              onRange={(a, b) => { setPreset("custom"); setFrom(a); setTo(b); setPage(1); }}
+              className="sm:hidden"
+            />
+            <div className="hidden items-center gap-2 sm:flex">
               <Input type="date" value={from} onChange={(e) => reset(setFrom)(e.target.value)} aria-label="From date" className="min-w-0" />
               <span className="text-stone-400">–</span>
               <Input type="date" value={to} onChange={(e) => reset(setTo)(e.target.value)} aria-label="To date" className="min-w-0" />

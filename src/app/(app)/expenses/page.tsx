@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, Plus, Settings2, Trash2, Wallet } from "lucide-react";
 import { Badge, Button, Card, Empty, ErrorBox, Field, Input, Modal, PageHeader, Select, Spinner, Stat, Textarea, cx, useConfirm, useToast } from "@/components/ui";
+import { PeriodPicker } from "@/components/PeriodPicker";
 import { api, useApi } from "@/lib/client";
 import { toYmd, todayYmd } from "@/lib/dates";
 import { fmtDate, money, num } from "@/lib/format";
@@ -85,7 +86,20 @@ export default function ExpensesPage() {
         }
       />
 
-      <Card className="mb-5">
+      <div className="mb-5 flex gap-2 sm:hidden">
+        <PeriodPicker preset={preset} range={range} onPreset={choose} onRange={custom} className="flex-1" />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          aria-label="Category"
+          className={cx("h-12 w-[38%] min-w-0 rounded-2xl border bg-white px-3 text-sm shadow-[0_1px_2px_rgba(26,22,19,0.04)] focus:outline-none", category ? "border-ink font-medium text-ink" : "border-line text-stone-700")}
+        >
+          <option value="">All types</option>
+          {cats?.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+        </select>
+      </div>
+
+      <Card className="mb-5 hidden sm:block">
         <div className="space-y-3 p-3 sm:p-4">
           <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             {PRESETS.filter((p) => SHOWN.includes(p.k)).map((p) => (
@@ -119,7 +133,7 @@ export default function ExpensesPage() {
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
             <Stat icon={Wallet} label="Total expenses" value={money(data.total)} sub={`${num(data.expenses.length)} entries`} emphasis />
             <Stat label="Biggest cost" value={top ? money(top.total) : "—"} sub={top ? top.name : "No expenses yet"} />
-            <Stat label="Categories used" value={num(data.byCategory.length)} sub={`of ${cats?.length ?? 0} categories`} />
+            <div className="hidden sm:col-span-2 sm:block lg:col-span-1"><Stat label="Categories used" value={num(data.byCategory.length)} sub={`of ${cats?.length ?? 0} categories`} /></div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -160,7 +174,7 @@ export default function ExpensesPage() {
                     <li key={e._id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
                       <div className="hidden w-24 shrink-0 text-xs text-muted sm:block">{fmtDate(e.date)}</div>
                       <div className="min-w-0 flex-1">
-                        <Badge tone="gold">{e.categoryName}</Badge>
+                        <Badge tone="gold" className="max-w-full"><span className="truncate">{e.categoryName}</span></Badge>
                         {e.note && <p className="mt-1 truncate text-sm text-stone-600">{e.note}</p>}
                         <p className="mt-0.5 text-xs text-muted sm:hidden">{fmtDate(e.date)}</p>
                       </div>

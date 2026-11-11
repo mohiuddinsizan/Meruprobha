@@ -295,7 +295,11 @@ export function OrderForm({ order }: { order?: Order }) {
           </div>
         </Card>
         <ErrorBox error={error} />
-        <div className="flex gap-2">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2 border-t border-line bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+          <div className="min-w-0 sm:hidden">
+            <p className="text-[11px] uppercase tracking-wider text-muted">Customer pays</p>
+            <p className="font-semibold tabular-nums">{money(total)}</p>
+          </div>
           <Button type="submit" loading={saving} className="flex-1">{order ? "Save changes" : "Save sale"}</Button>
           <Button type="button" variant="secondary" onClick={() => router.back()}>Cancel</Button>
         </div>

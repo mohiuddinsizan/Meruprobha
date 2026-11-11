@@ -43,6 +43,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const { data: settings } = useApi<{ shopName: string }>("/api/settings");
   const shop = settings?.shopName ?? "Meroprobha";
 
+  // Forms keep their own pinned Save bar on phones, so the tab bar steps aside.
+  const formPage = /\/(new|edit)$/.test(path);
   useEffect(() => setOpen(false), [path]);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -153,12 +155,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </aside>
       </div>
 
-      <main className="min-w-0 flex-1 px-4 pb-28 pt-5 sm:px-6 sm:pt-7 lg:px-10 lg:pb-12 lg:pt-10">
+      <main className={cx("min-w-0 flex-1 px-4 pt-5 sm:px-6 sm:pt-7 lg:px-10 lg:pb-12 lg:pt-10", formPage ? "pb-28 sm:pb-10" : "pb-28")}>
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      <nav className={cx("fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden", formPage && "hidden")}>
         <ul className="relative grid grid-cols-5">
           {TABS.slice(0, 2).map((t) => <Tab key={t.href} {...t} active={isActive(path, t.href)} />)}
           <li className="flex justify-center">

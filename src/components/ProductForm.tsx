@@ -183,7 +183,7 @@ export function ProductForm({ product }: { product?: Product }) {
           </div>
         </Card>
         <ErrorBox error={error} />
-        <div className="flex gap-2">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2 border-t border-line bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
           <Button type="submit" loading={saving} disabled={uploading > 0} className="flex-1">
             {product ? "Save changes" : "Add product"}
           </Button>

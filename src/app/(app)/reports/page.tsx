@@ -5,8 +5,9 @@ import { useState } from "react";
 import { Ban, Coins, Download, Filter, Package, Printer, Receipt, Sparkles, Table2, TrendingUp, Truck, Wallet, X } from "lucide-react";
 import { CategoryProfit, GenreProfit, Insights, ProductProfitability, UnsoldStock, type CategoryRow, type GenreRow, type ProductRow, type UnsoldRow } from "@/components/ProfitAnalysis";
 import { PartnerShares } from "@/components/PartnerShares";
+import { FilterButton, PeriodPicker } from "@/components/PeriodPicker";
 import { SalesChart, bucketLabel } from "@/components/SalesChart";
-import { Button, Card, Empty, ErrorBox, Input, PageHeader, Select, Spinner, Stat, cx } from "@/components/ui";
+import { Button, Card, Empty, ErrorBox, Field, Input, Modal, PageHeader, Select, Spinner, Stat, cx } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/constants";
 import { todayYmd } from "@/lib/dates";
@@ -45,6 +46,7 @@ export default function ReportsPage() {
   const [exporting, setExporting] = useState(false);
   const [genre, setGenre] = useState("");
   const [category, setCategory] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const { data: genres } = useApi<Genre[]>("/api/categories");
   const { data: partners } = useApi<Partner[]>("/api/partners");
   const g = genres?.find((x) => x._id === genre);
@@ -112,7 +114,40 @@ export default function ReportsPage() {
         }
       />
 
-      <Card className="no-print mb-6">
+      <div className="no-print mb-5 flex gap-2 sm:hidden">
+        <PeriodPicker preset={preset} range={range} onPreset={choose} onRange={custom} className="flex-1" />
+        <FilterButton count={(genre ? 1 : 0) + (category ? 1 : 0) + (delivered ? 1 : 0)} onClick={() => setFiltersOpen(true)} />
+      </div>
+
+      <Modal open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+        <div className="space-y-4">
+          <Field label="Genre">
+            <Select value={genre} onChange={(e) => { setGenre(e.target.value); setCategory(""); }}>
+              <option value="">All genres</option>
+              {genres?.map((x) => <option key={x._id} value={x._id}>{x.name}</option>)}
+            </Select>
+          </Field>
+          <Field label="Category">
+            <Select value={category} onChange={(e) => setCategory(e.target.value)} disabled={!g?.categories.length}>
+              <option value="">All categories</option>
+              {g?.categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </Select>
+          </Field>
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3 text-sm">
+            <span>
+              <span className="block font-medium">Delivered orders only</span>
+              <span className="block text-xs text-muted">Leave off to count every order except cancelled</span>
+            </span>
+            <input type="checkbox" checked={delivered} onChange={(e) => setDelivered(e.target.checked)} className="size-5 shrink-0 accent-gold-600" />
+          </label>
+          <div className="flex gap-2 pt-1">
+            <Button variant="secondary" className="flex-1" onClick={() => { setGenre(""); setCategory(""); setDelivered(false); }}>Reset</Button>
+            <Button className="flex-1" onClick={() => setFiltersOpen(false)}>Done</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Card className="no-print mb-6 hidden sm:block">
         <div className="space-y-3 p-4">
           <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             {PRESETS.map((p) => (
