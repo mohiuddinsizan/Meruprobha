@@ -66,12 +66,43 @@ export type Order = {
 
 export type Settings = { shopName: string; deliveryInsideDhaka: number; deliveryOutsideDhaka: number; lowStockThreshold: number };
 
-export type Partner = {
+export type Account = {
   _id: string;
+  username: string;
   name: string;
-  sharePct: number;
   phone: string;
-  note: string;
-  shareHistory: { at: string; from: number; to: number }[];
+  role: "super" | "admin";
+  active: boolean;
+  balance: number;
+  totalReceived: number;
+  totalWithdrawn: number;
   createdAt: string;
+};
+
+export type LedgerEntry = {
+  _id: string;
+  type: "distribution" | "withdrawal";
+  by: string;
+  byName: string;
+  note: string;
+  upTo: string | null;
+  profitToDate: number;
+  alreadyDistributed: number;
+  available: number;
+  shares: { user: string; name: string; pct: number; amount: number }[];
+  distributed: number;
+  retained: number;
+  user: string | null;
+  userName: string;
+  amount: number;
+  reversed: { at: string; by: string; byName: string } | null;
+  createdAt: string;
+};
+
+export type DistributionPreview = {
+  upTo: string;
+  profit: { gross: number; expenses: number; net: number };
+  alreadyDistributed: number;
+  available: number;
+  lastUpTo: string | null;
 };

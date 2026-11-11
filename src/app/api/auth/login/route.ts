@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { route, HttpError, str } from "@/lib/api";
-import { checkPassword, getSettings } from "@/lib/auth";
+import { findLoginUser } from "@/lib/auth";
 import { COOKIE, cookieOptions, signSession } from "@/lib/session";
 
 // Simple in-memory brute-force guard: 5 failures locks that IP for 5 minutes.
@@ -12,15 +12,14 @@ export const POST = route(async (req) => {
   if (f && f.until > Date.now()) throw new HttpError(429, "Too many wrong attempts. Try again in a few minutes.");
 
   const body = await req.json().catch(() => ({}));
-  const ok = await checkPassword(str(body.password, 200));
-  if (!ok) {
+  const u = await findLoginUser(str(body.username, 40), str(body.password, 200));
+  if (!u) {
     const n = (f && f.until > Date.now() - 5 * 60_000 ? f.n : 0) + 1;
     fails.set(ip, { n, until: n >= 5 ? Date.now() + 5 * 60_000 : 0 });
-    throw new HttpError(401, "Wrong password");
+    throw new HttpError(401, "Wrong username or password");
   }
   fails.delete(ip);
-  const s = await getSettings();
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(COOKIE, await signSession(s.sessionVersion), cookieOptions);
+  res.cookies.set(COOKIE, await signSession(String(u._id), u.sessionVersion), cookieOptions);
   return res;
 }, { public: true });

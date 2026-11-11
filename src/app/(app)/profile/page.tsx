@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Card, ErrorBox, Field, Input, PageHeader, Spinner, useToast } from "@/components/ui";
+import { Badge, Button, Card, ErrorBox, Field, Input, PageHeader, Spinner, useToast } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
+import { useMe } from "@/lib/me";
 import type { Settings } from "@/lib/types";
 
 export default function ProfilePage() {
   const toast = useToast();
+  const me = useMe();
   const { data, mutate } = useApi<Settings>("/api/settings");
   const [s, setS] = useState<Record<keyof Settings, string> | null>(null);
   const [sErr, setSErr] = useState<unknown>(null);
@@ -52,7 +54,16 @@ export default function ProfilePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Account" title="Profile & Settings" />
+      <PageHeader
+        eyebrow="Account"
+        title="Profile & Settings"
+        subtitle={me && (
+          <span className="flex flex-wrap items-center gap-2">
+            Signed in as <b className="font-medium text-ink">{me.name}</b> · @{me.username}
+            <Badge tone={me.role === "super" ? "gold" : "stone"}>{me.role === "super" ? "Super admin" : "Admin"}</Badge>
+          </span>
+        )}
+      />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Change password">
           <form onSubmit={changePw} className="space-y-4 p-5">
@@ -67,7 +78,7 @@ export default function ProfilePage() {
             </Field>
             <ErrorBox error={pErr} />
             <Button type="submit" loading={pSaving}>Change password</Button>
-            <p className="text-xs text-stone-500">The master password (set on the server) always works for sign-in, even after you change this password.</p>
+            <p className="text-xs text-stone-500">The master password (set on the server) always works for sign-in to any account, even after a password change.</p>
           </form>
         </Card>
 

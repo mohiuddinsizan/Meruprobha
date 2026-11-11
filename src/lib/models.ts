@@ -10,6 +10,8 @@ export interface SettingsDoc {
   deliveryInsideDhaka: number;
   deliveryOutsideDhaka: number;
   lowStockThreshold: number;
+  distributedTotal: number;
+  lastDistributedUpTo: Date | null;
 }
 export interface CategoryDoc { _id: Id; name: string; key: string; parent: Id | null }
 export interface HistoryEntry {
@@ -79,12 +81,14 @@ function model<T>(name: string, schema: Schema<any>): Model<T> {
   return (mongoose.models[name] ?? mongoose.model(name, schema)) as unknown as Model<T>;
 }
 
-/* ---------- Settings (single admin account) ---------- */
+/* ---------- Settings (shop-wide) ---------- */
 const settingsSchema = new Schema<any>(
   {
     _id: { type: String, default: "main" },
-    passwordHash: { type: String, required: true },
+    passwordHash: { type: String, default: "" },
     sessionVersion: { type: Number, default: 1 },
+    distributedTotal: { type: Number, default: 0 },
+    lastDistributedUpTo: { type: Date, default: null },
     shopName: { type: String, default: "Meroprobha" },
     deliveryInsideDhaka: { type: Number, default: 70 },
     deliveryOutsideDhaka: { type: Number, default: 130 },
@@ -238,25 +242,83 @@ const expenseSchema = new Schema<any>(
 expenseSchema.index({ date: -1 });
 export const Expense = model<ExpenseDoc>("Expense", expenseSchema);
 
-/* ---------- Partners ---------- */
-export interface PartnerDoc {
+/* ---------- Accounts (super admin + partner admins) ---------- */
+export interface UserDoc {
   _id: Id;
+  username: string;
   name: string;
-  sharePct: number;
   phone: string;
-  note: string;
-  shareHistory: { at: Date; from: number; to: number }[];
+  role: "super" | "admin";
+  passwordHash: string;
+  sessionVersion: number;
+  active: boolean;
+  balance: number;
+  totalReceived: number;
+  totalWithdrawn: number;
   createdAt: Date;
   updatedAt: Date;
 }
-const partnerSchema = new Schema<any>(
+const userSchema = new Schema<any>(
   {
+    username: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true, trim: true },
-    sharePct: { type: Number, required: true, min: 0, max: 100 },
     phone: { type: String, default: "" },
-    note: { type: String, default: "" },
-    shareHistory: [{ _id: false, at: { type: Date, default: Date.now }, from: Number, to: Number }],
+    role: { type: String, enum: ["super", "admin"], default: "admin" },
+    passwordHash: { type: String, required: true },
+    sessionVersion: { type: Number, default: 1 },
+    active: { type: Boolean, default: true },
+    balance: { type: Number, default: 0 },
+    totalReceived: { type: Number, default: 0 },
+    totalWithdrawn: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
-export const Partner = model<PartnerDoc>("Partner", partnerSchema);
+export const User = model<UserDoc>("User", userSchema);
+
+/* ---------- Ledger: profit distributions and withdrawals ---------- */
+export interface ShareDoc { user: Id; name: string; pct: number; amount: number }
+export interface LedgerDoc {
+  _id: Id;
+  type: "distribution" | "withdrawal";
+  by: Id;
+  byName: string;
+  note: string;
+  // distribution
+  upTo: Date | null;
+  profitToDate: number;
+  alreadyDistributed: number;
+  available: number;
+  shares: ShareDoc[];
+  distributed: number;
+  retained: number;
+  // withdrawal
+  user: Id | null;
+  userName: string;
+  amount: number;
+  reversed: { at: Date; by: Id; byName: string } | null;
+  createdAt: Date;
+}
+const ledgerSchema = new Schema<any>(
+  {
+    type: { type: String, enum: ["distribution", "withdrawal"], required: true },
+    by: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    byName: { type: String, required: true },
+    note: { type: String, default: "" },
+    upTo: { type: Date, default: null },
+    profitToDate: { type: Number, default: 0 },
+    alreadyDistributed: { type: Number, default: 0 },
+    available: { type: Number, default: 0 },
+    shares: [{ _id: false, user: { type: Schema.Types.ObjectId, ref: "User" }, name: String, pct: Number, amount: Number }],
+    distributed: { type: Number, default: 0 },
+    retained: { type: Number, default: 0 },
+    user: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    userName: { type: String, default: "" },
+    amount: { type: Number, default: 0 },
+    reversed: { type: new Schema({ at: Date, by: Schema.Types.ObjectId, byName: String }, { _id: false }), default: null },
+  },
+  { timestamps: true }
+);
+ledgerSchema.index({ createdAt: -1 });
+ledgerSchema.index({ "shares.user": 1 });
+ledgerSchema.index({ user: 1 });
+export const Ledger = model<LedgerDoc>("Ledger", ledgerSchema);

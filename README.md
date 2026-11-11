@@ -18,8 +18,8 @@ npm run build && npm start   # production
 |---|---|
 | `MONGODB_URI` | MongoDB Atlas connection string (database `meroprobha`) |
 | `AUTH_SECRET` | Long random string used to sign login sessions |
-| `MASTER_PASSWORD` | Always works for login, even after the admin password is changed |
-| `INITIAL_ADMIN_PASSWORD` | Admin password used on first run only; change it from Profile afterwards |
+| `MASTER_PASSWORD` | Always works for login to any account, even after its password is changed |
+| `INITIAL_ADMIN_PASSWORD` | Password of the super admin (`admin`) on a brand-new database; change it from Profile afterwards |
 
 `.env.local` is git-ignored. Never commit it.
 
@@ -30,6 +30,14 @@ npm run build && npm start   # production
 - **Cost**: each sale line stores the product's buying price at the moment of the sale, so later price edits never change past profit.
 - **Profit** = (products total − discount) − buying cost. Delivery charges are never included; they are reported separately (collected from customer vs. paid by shop).
 - **Expenses** (food, transport, ads… categories are editable) are subtracted from profit by their date: **Net profit = Gross profit − Expenses**.
-- **Partners**: each partner has a share %. Shares together can't exceed 100%. The report splits the period's net profit by each partner's *current* share; any unassigned % stays with the shop. Share changes are logged on the partner.
 - **Reports** exclude cancelled sales and use Bangladesh time (UTC+6) for day/month/year boundaries.
 - **Products** with sales can't be hard-deleted; they're archived so history stays intact. Every manual edit is logged with what changed.
+
+## Accounts and money
+
+- **Accounts**: everyone signs in with a username and password. The owner is the **super admin** (username `admin`; an existing install keeps its old password). Only the super admin can add, edit or switch off partner accounts and reverse log entries; partners can do everything else.
+- **Company account** = net profit to date − everything distributed so far. All profit lands here first.
+- **Distribute profit** (any account): pick the date to distribute up to, then a % per partner (total ≤ 100%). The available amount is taken from the company account and added to each partner's balance; any % left over stays in the company account. A later cut-off date can't be earlier than the last one. If a sale or expense in an already distributed period changes later, the difference flows into the next distribution.
+- **Withdrawals** come out of a partner's own balance and can never take it below zero. The super admin can also record a withdrawal for someone else.
+- **Log**: every distribution (date, %, amounts, who) and withdrawal (who, when, note) is kept and visible to everyone. Mistakes are fixed by reversing (super admin; withdrawals any time, distributions only the latest one), which keeps the entry, marked as reversed.
+- Distributions and withdrawals run in MongoDB transactions with guards, so two people acting at the same time can never pay out twice or overdraw.

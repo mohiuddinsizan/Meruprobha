@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthed } from "./auth";
+import { currentUser, type AuthUser } from "./auth";
 import { dbConnect } from "./db";
 
 export class HttpError extends Error {
@@ -10,15 +10,20 @@ export class HttpError extends Error {
 
 export const bad = (msg: string) => new HttpError(400, msg);
 
-type Handler<C> = (req: Request, ctx: C) => Promise<unknown>;
+type Handler<C> = (req: Request, ctx: C, user: AuthUser) => Promise<unknown>;
 
-/** Wraps a route handler: requires login, connects DB, turns errors into JSON. */
-export function route<C = unknown>(fn: Handler<C>, opts: { public?: boolean } = {}) {
+/**
+ * Wraps a route handler: requires login (or the super admin with `superOnly`),
+ * connects DB, passes the signed-in account, turns errors into JSON.
+ */
+export function route<C = unknown>(fn: Handler<C>, opts: { public?: boolean; superOnly?: boolean } = {}) {
   return async (req: Request, ctx: C) => {
     try {
       await dbConnect();
-      if (!opts.public && !(await isAuthed())) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
-      const out = await fn(req, ctx);
+      const user = opts.public ? null : await currentUser();
+      if (!opts.public && !user) return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+      if (opts.superOnly && user?.role !== "super") return NextResponse.json({ error: "Only the super admin can do this" }, { status: 403 });
+      const out = await fn(req, ctx, user as AuthUser);
       return out instanceof Response ? out : NextResponse.json(out ?? { ok: true });
     } catch (e: unknown) {
       if (e instanceof HttpError) return NextResponse.json({ error: e.message }, { status: e.status });

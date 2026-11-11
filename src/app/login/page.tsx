@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Gem, Lock } from "lucide-react";
+import { Eye, EyeOff, Gem, Lock, User } from "lucide-react";
 import { Button, ErrorBox, Input } from "@/components/ui";
 import { api } from "@/lib/client";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -16,7 +17,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await api("/api/auth/login", "POST", { password });
+      await api("/api/auth/login", "POST", { username, password });
       window.location.href = "/";
     } catch (err) {
       setError(err);
@@ -60,9 +61,24 @@ export default function LoginPage() {
 
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-600">Welcome back</p>
           <h2 className="mt-2 font-display text-4xl font-semibold text-ink">Sign in</h2>
-          <p className="mt-2 text-sm text-muted">Enter your admin password to open the boutique console.</p>
+          <p className="mt-2 text-sm text-muted">Enter your username and password to open the boutique console.</p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
+            <div className="relative">
+              <User className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gold-500" />
+              <Input
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="h-12 pl-11"
+                autoFocus
+                required
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                autoComplete="username"
+              />
+            </div>
             <div className="relative">
               <Lock className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-gold-500" />
               <Input
@@ -71,7 +87,6 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-12 pl-11 pr-11"
-                autoFocus
                 required
                 autoComplete="current-password"
               />

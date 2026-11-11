@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, Boxes, Gem, LayoutDashboard, LogOut, Menu, Plus, ShoppingBag, Tags, UserCog, Users, Wallet, X } from "lucide-react";
+import { BarChart3, Boxes, Gem, Landmark, LayoutDashboard, LogOut, Menu, Plus, ScrollText, ShoppingBag, Tags, UserCog, Users, Wallet, X } from "lucide-react";
 import { cx } from "./ui";
 import { api, useApi } from "@/lib/client";
+import { useMe } from "@/lib/me";
 
 const GROUPS = [
   {
@@ -20,9 +21,16 @@ const GROUPS = [
     items: [
       { href: "/sales", label: "Sales", icon: ShoppingBag },
       { href: "/expenses", label: "Expenses", icon: Wallet },
-      { href: "/partners", label: "Partners", icon: Users },
       { href: "/inventory", label: "Inventory", icon: Boxes },
       { href: "/categories", label: "Genres & Categories", icon: Tags },
+    ],
+  },
+  {
+    label: "Money",
+    items: [
+      { href: "/company", label: "Company account", icon: Landmark },
+      { href: "/partners", label: "Partners", icon: Users },
+      { href: "/log", label: "Log", icon: ScrollText },
     ],
   },
   { label: "Account", items: [{ href: "/profile", label: "Profile & Settings", icon: UserCog }] },
@@ -42,6 +50,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { data: settings } = useApi<{ shopName: string }>("/api/settings");
   const shop = settings?.shopName ?? "Meroprobha";
+  const me = useMe();
 
   // Forms keep their own pinned Save bar on phones, so the tab bar steps aside.
   const formPage = /\/(new|edit)$/.test(path);
@@ -100,11 +109,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const footer = (
     <div className="border-t border-white/[0.06] p-3">
       <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-        <span className="grid size-8 place-items-center rounded-full bg-white/[0.06] font-display text-sm font-semibold text-gold-300">A</span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm text-stone-200">Admin</span>
-          <span className="block text-[11px] text-stone-500">Owner account</span>
-        </span>
+        <span className="grid size-8 place-items-center rounded-full bg-white/[0.06] font-display text-sm font-semibold text-gold-300">{me?.name.charAt(0).toUpperCase() ?? ""}</span>
+        <Link href="/profile" className="min-w-0 flex-1">
+          <span className="block truncate text-sm text-stone-200">{me?.name ?? " "}</span>
+          <span className="block text-[11px] text-stone-500">{me ? (me.role === "super" ? "Super admin" : "Admin") : " "}</span>
+        </Link>
         <button onClick={logout} className="rounded-lg p-2 text-stone-500 hover:bg-white/[0.06] hover:text-gold-200" title="Log out" aria-label="Log out">
           <LogOut className="size-4" />
         </button>

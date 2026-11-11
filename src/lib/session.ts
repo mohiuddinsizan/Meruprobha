@@ -10,20 +10,24 @@ function key() {
   return new TextEncoder().encode(s);
 }
 
-export async function signSession(version: number): Promise<string> {
+export type Session = { uid: string; v: number };
+
+export async function signSession(uid: string, version: number): Promise<string> {
   return new SignJWT({ v: version })
     .setProtectedHeader({ alg: "HS256" })
-    .setSubject("admin")
+    .setSubject(uid)
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DAYS}d`)
     .sign(key());
 }
 
-export async function verifySession(token: string | undefined): Promise<{ v: number } | null> {
+export async function verifySession(token: string | undefined): Promise<Session | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, key());
-    return { v: Number(payload.v) };
+    // Tokens from the single-password era have subject "admin"; they no longer count.
+    if (!payload.sub || !/^[a-f0-9]{24}$/.test(payload.sub)) return null;
+    return { uid: payload.sub, v: Number(payload.v) };
   } catch {
     return null;
   }
