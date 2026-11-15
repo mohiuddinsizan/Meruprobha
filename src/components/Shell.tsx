@@ -49,7 +49,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const { data: settings } = useApi<{ shopName: string }>("/api/settings");
-  const shop = settings?.shopName ?? "Meroprobha";
+  const shop = settings?.shopName ?? "Meruprobha";
   const me = useMe();
 
   // Forms keep their own pinned Save bar on phones, so the tab bar steps aside.

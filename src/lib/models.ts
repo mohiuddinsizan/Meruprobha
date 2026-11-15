@@ -89,7 +89,7 @@ const settingsSchema = new Schema<any>(
     sessionVersion: { type: Number, default: 1 },
     distributedTotal: { type: Number, default: 0 },
     lastDistributedUpTo: { type: Date, default: null },
-    shopName: { type: String, default: "Meroprobha" },
+    shopName: { type: String, default: "Meruprobha" },
     deliveryInsideDhaka: { type: Number, default: 70 },
     deliveryOutsideDhaka: { type: Number, default: 130 },
     lowStockThreshold: { type: Number, default: 2 },

@@ -8,8 +8,8 @@ const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["
 export const viewport = { themeColor: "#13100d" };
 
 export const metadata: Metadata = {
-  title: "Meroprobha Admin",
-  description: "Inventory, sales and profit tracking for Meroprobha",
+  title: "Meruprobha Admin",
+  description: "Inventory, sales and profit tracking for Meruprobha",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

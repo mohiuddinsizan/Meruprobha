@@ -38,13 +38,13 @@ export default function LoginPage() {
             <span className="text-[11px] font-medium uppercase tracking-[0.35em] text-stone-400">Fine Jewellery</span>
           </div>
           <div>
-            <h1 className="gold-text pb-2 font-display text-6xl font-semibold leading-none tracking-wide xl:text-7xl 2xl:text-8xl">Meroprobha</h1>
+            <h1 className="gold-text pb-2 font-display text-6xl font-semibold leading-none tracking-wide xl:text-7xl 2xl:text-8xl">Meruprobha</h1>
             <div className="hairline-gold my-8 h-px w-40" />
             <p className="max-w-md font-display text-2xl leading-snug text-stone-300">
               Every piece, every sale, every taka — <span className="italic text-gold-300">beautifully accounted for.</span>
             </p>
           </div>
-          <p className="text-xs text-stone-600">© {new Date().getFullYear()} Meroprobha · Admin console</p>
+          <p className="text-xs text-stone-600">© {new Date().getFullYear()} Meruprobha · Admin console</p>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ export default function LoginPage() {
             <span className="gold-fill mb-4 grid size-14 place-items-center rounded-full text-espresso shadow-lg shadow-gold-700/20">
               <Gem className="size-6" strokeWidth={1.75} />
             </span>
-            <h1 className="font-display text-5xl font-semibold tracking-wide text-ink">Meroprobha</h1>
+            <h1 className="font-display text-5xl font-semibold tracking-wide text-ink">Meruprobha</h1>
             <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.35em] text-gold-600">Fine Jewellery</p>
           </div>
 

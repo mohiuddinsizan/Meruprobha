@@ -1,6 +1,6 @@
-# Meroprobha Admin
+# Meruprobha Admin
 
-Business tracking dashboard for the Meroprobha jewellery shop: inventory, sales, delivery status and profit reports.
+Business tracking dashboard for the Meruprobha jewellery shop: inventory, sales, delivery status and profit reports.
 
 Built with Next.js 15 (App Router), TypeScript, Tailwind CSS, MongoDB (Mongoose) and Recharts.
 
