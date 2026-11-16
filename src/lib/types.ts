@@ -64,7 +64,17 @@ export type Order = {
   updatedAt: string;
 };
 
-export type Settings = { shopName: string; deliveryInsideDhaka: number; deliveryOutsideDhaka: number; lowStockThreshold: number };
+export type Settings = {
+  shopName: string;
+  shopAddress: string;
+  shopPhone: string;
+  shopEmail: string;
+  shopWebsite: string;
+  invoiceNote: string;
+  deliveryInsideDhaka: number;
+  deliveryOutsideDhaka: number;
+  lowStockThreshold: number;
+};
 
 export type Account = {
   _id: string;

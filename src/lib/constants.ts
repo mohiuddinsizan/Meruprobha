@@ -10,6 +10,9 @@ export const DISTRICTS: { division: string; districts: string[] }[] = [
 ];
 export const ALL_DISTRICTS = DISTRICTS.flatMap((d) => d.districts);
 
+/** Sale/invoice numbers start here: the first sale is #1150 (invoice INV-1150). */
+export const FIRST_ORDER_NO = 1150;
+
 export const ORDER_STATUSES = ["packaging", "out_for_delivery", "delivered", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 export const STATUS_LABEL: Record<OrderStatus, string> = {

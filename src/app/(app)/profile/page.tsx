@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, ErrorBox, Field, Input, PageHeader, Spinner, useToast } from "@/components/ui";
+import { Badge, Button, Card, ErrorBox, Field, Input, PageHeader, Spinner, Textarea, useToast } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
 import { useMe } from "@/lib/me";
 import type { Settings } from "@/lib/types";
@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const [pSaving, setPSaving] = useState(false);
 
   useEffect(() => {
-    if (data && !s) setS({ shopName: data.shopName, deliveryInsideDhaka: String(data.deliveryInsideDhaka), deliveryOutsideDhaka: String(data.deliveryOutsideDhaka), lowStockThreshold: String(data.lowStockThreshold) });
+    if (data && !s) setS({ shopName: data.shopName, shopAddress: data.shopAddress, shopPhone: data.shopPhone, shopEmail: data.shopEmail, shopWebsite: data.shopWebsite, invoiceNote: data.invoiceNote, deliveryInsideDhaka: String(data.deliveryInsideDhaka), deliveryOutsideDhaka: String(data.deliveryOutsideDhaka), lowStockThreshold: String(data.lowStockThreshold) });
   }, [data, s]);
 
   const saveSettings = async (e: React.FormEvent) => {
@@ -89,6 +89,23 @@ export default function ProfilePage() {
             <form onSubmit={saveSettings} className="space-y-4 p-5">
               <Field label="Shop name" required>
                 <Input value={s.shopName} onChange={(e) => setS({ ...s, shopName: e.target.value })} required />
+              </Field>
+              <Field label="Shop address" hint="Shown on invoices">
+                <Textarea rows={2} value={s.shopAddress} onChange={(e) => setS({ ...s, shopAddress: e.target.value })} placeholder="House, road, area, city" />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Shop phone">
+                  <Input value={s.shopPhone} onChange={(e) => setS({ ...s, shopPhone: e.target.value })} placeholder="01XXXXXXXXX" />
+                </Field>
+                <Field label="Shop email">
+                  <Input type="email" value={s.shopEmail} onChange={(e) => setS({ ...s, shopEmail: e.target.value })} />
+                </Field>
+              </div>
+              <Field label="Website or Facebook page">
+                <Input value={s.shopWebsite} onChange={(e) => setS({ ...s, shopWebsite: e.target.value })} placeholder="facebook.com/meruprobha" />
+              </Field>
+              <Field label="Invoice footer note" hint="Return/exchange policy or a thank-you line, printed at the bottom of every invoice">
+                <Textarea rows={2} value={s.invoiceNote} onChange={(e) => setS({ ...s, invoiceNote: e.target.value })} placeholder="Products can be exchanged within 3 days with this invoice." />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Delivery charge inside Dhaka (৳)" hint="Pre-filled on new sales">

@@ -7,6 +7,11 @@ export interface SettingsDoc {
   passwordHash: string;
   sessionVersion: number;
   shopName: string;
+  shopAddress: string;
+  shopPhone: string;
+  shopEmail: string;
+  shopWebsite: string;
+  invoiceNote: string;
   deliveryInsideDhaka: number;
   deliveryOutsideDhaka: number;
   lowStockThreshold: number;
@@ -90,6 +95,11 @@ const settingsSchema = new Schema<any>(
     distributedTotal: { type: Number, default: 0 },
     lastDistributedUpTo: { type: Date, default: null },
     shopName: { type: String, default: "Meruprobha" },
+    shopAddress: { type: String, default: "" },
+    shopPhone: { type: String, default: "" },
+    shopEmail: { type: String, default: "" },
+    shopWebsite: { type: String, default: "" },
+    invoiceNote: { type: String, default: "" },
     deliveryInsideDhaka: { type: Number, default: 70 },
     deliveryOutsideDhaka: { type: Number, default: 130 },
     lowStockThreshold: { type: Number, default: 2 },

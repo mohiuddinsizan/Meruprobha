@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
-import { Check, Copy, Pencil, Printer, RotateCcw, Trash2, XCircle } from "lucide-react";
+import { Check, Copy, FileText, Pencil, RotateCcw, Trash2, XCircle } from "lucide-react";
 import { Badge, Button, Card, ErrorBox, Field, Input, Modal, PageHeader, PaymentBadge, Spinner, StatusBadge, cx, useConfirm, useToast } from "@/components/ui";
 import { api, useApi } from "@/lib/client";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/constants";
@@ -111,7 +111,7 @@ export default function SaleDetailPage({ params }: { params: Promise<{ id: strin
         subtitle={`${fmtDate(o.saleDate)}${o.source ? ` · via ${o.source}` : ""} · created ${fmtDate(o.createdAt, true)}`}
         actions={
           <div className="no-print flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => window.print()} className="hidden sm:inline-flex"><Printer className="size-4" /> Print</Button>
+            <Button variant="secondary" href={`/invoice/${id}`}><FileText className="size-4" /> Invoice</Button>
             <Button variant="secondary" href={`/sales/${id}/edit`}><Pencil className="size-4" /> Edit</Button>
             <Button variant="ghost" onClick={remove} className="text-red-600 hover:bg-red-50" title="Delete"><Trash2 className="size-4" /></Button>
           </div>

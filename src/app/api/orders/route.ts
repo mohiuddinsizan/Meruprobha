@@ -1,5 +1,5 @@
 import { route } from "@/lib/api";
-import { ORDER_STATUSES } from "@/lib/constants";
+import { FIRST_ORDER_NO, ORDER_STATUSES } from "@/lib/constants";
 import { addDays, dayStart, isYmd } from "@/lib/dates";
 import { Order, nextSeq } from "@/lib/models";
 import { applyStock, parseOrder, qtyByProduct, withTxn } from "@/lib/orders";
@@ -41,7 +41,7 @@ export const POST = route(async (req) => {
   const { fields, status } = await parseOrder(await req.json());
   const applied = status !== "cancelled";
   const order = await withTxn(async (session) => {
-    const orderNo = 1000 + (await nextSeq("order", session));
+    const orderNo = FIRST_ORDER_NO - 1 + (await nextSeq("order", session));
     const [o] = await Order.create(
       [{ ...fields, orderNo, status, stockApplied: applied, statusHistory: [{ status, at: new Date() }] }],
       { session }
